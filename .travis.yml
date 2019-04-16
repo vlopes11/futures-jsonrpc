@@ -1,0 +1,4 @@
+matrix:
+    include:
+        - language: rust
+          rust: nightly
