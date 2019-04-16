@@ -8,7 +8,7 @@ license = "MIT"
 repository = "https://github.com/vlopes11/futures-jsonrpc"
 documentation = "https://docs.rs/futures-jsonrpc/"
 readme = "README.md"
-keywords = ["jsonrpc", "json-rpc", "json", "rpc", "serde", "futures", "async", "future"]
+keywords = ["jsonrpc", "json-rpc", "rpc", "serde", "futures"]
 
 [dependencies]
 futures = "0.1.26"
