@@ -21,13 +21,13 @@
 //! use futures_jsonrpc::futures::prelude::*;
 //! use futures_jsonrpc::*;
 //! use serde_json::Number;
-//! 
+//!
 //! // `JrpcHandler` use foreign structures as controllers
 //! #[derive(Debug, Clone)]
 //! struct SomeNotification {
 //!     request: Option<JrpcRequest>,
 //! }
-//! 
+//!
 //! // Here is some boilerplate to instantiate a new Notification, and handle the received request
 //! impl SomeNotification {
 //!     pub fn new() -> Result<Self, ErrorVariant> {
@@ -35,24 +35,24 @@
 //!         let some_notification = SomeNotification { request };
 //!         Ok(some_notification)
 //!     }
-//! 
+//!
 //!     pub fn get_request(&self) -> Result<JrpcRequest, ErrorVariant> {
 //!         let request = self.request.clone();
 //!         request
 //!             .map(|r| Ok(r.clone()))
 //!             .unwrap_or(Err(ErrorVariant::NoRequestProvided))
 //!     }
-//! 
+//!
 //!     pub fn set_request(mut self, request: JrpcRequest) -> Result<Self, ErrorVariant> {
 //!         self.request = Some(request);
 //!         Ok(self)
 //!     }
-//! 
+//!
 //!     pub fn clone_with_request(&self, request: JrpcRequest) -> Result<Self, ErrorVariant> {
 //!         self.clone().set_request(request)
 //!     }
 //! }
-//! 
+//!
 //! // `JrpcHandler` will just return a pollable associated future.
 //! //
 //! // The main implementation will go here
@@ -63,24 +63,24 @@
 //!     // specification. But, we can change the response here to something else, if required.
 //!     type Item = Option<JrpcResponse>;
 //!     type Error = ErrorVariant;
-//! 
+//!
 //!     fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
 //!         // We fetch the provided request to copy the data
 //!         let request = self.get_request()?;
-//! 
+//!
 //!         // The params, in this case, will be only a reflection on what was sent
 //!         let params = request.get_params().clone().unwrap_or(JsonValue::Null);
-//! 
+//!
 //!         // `generate_response` will receive an enum `JrpcResponseParam` and reply
 //!         // with either an error or success.
 //!         let message = JrpcResponseParam::generate_result(params)
 //!             .and_then(|result| request.generate_response(result))?;
-//! 
+//!
 //!         // Then, our reply is ready
 //!         Ok(Async::Ready(Some(message)))
 //!     }
 //! }
-//! 
+//!
 //! // The handler will call this trait to spawn a new future and process it when a registered method
 //! // is requested.
 //! impl JrpcMethodTrait for SomeNotification {
@@ -97,7 +97,7 @@
 //!         Ok(Box::new(self.clone_with_request(request)?))
 //!     }
 //! }
-//! 
+//!
 //! fn main() {
 //!     // `JrpcHanlder` instance is responsible for registering the JSON-RPC methods and receiving the
 //!     // requests.
@@ -105,7 +105,7 @@
 //!     // This is full `Arc`/`RwLock` protected. Therefore, it can be freely copied/sent among
 //!     // threads.
 //!     let handler = JrpcHandler::new().unwrap();
-//! 
+//!
 //!     handler
 //!         // `register_method` will tie the method signature to an instance, not a generic. This
 //!         // means we can freely mutate this instance across different signatures.
@@ -151,6 +151,8 @@ pub use crate::parser::{JrpcError, JrpcErrorEnum, JrpcRequest, JrpcResponse, Jrp
 pub use futures;
 pub use serde_json::error::Error as JsonError;
 pub use serde_json::Value as JsonValue;
+use std::fmt;
+use std::io::Error as IoError;
 
 pub mod handler;
 pub mod method;
@@ -166,4 +168,11 @@ pub enum ErrorVariant {
     ResponseCannotContainResultAndError,
     ResponseMustContainResultOrError,
     NoRequestProvided,
+    IoError(IoError),
+}
+
+impl fmt::Display for ErrorVariant {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
