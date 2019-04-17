@@ -1,4 +1,6 @@
 matrix:
     include:
-        - rust: nightly
-        - rust: stable
+        - language: rust
+          rust: nightly
+        - language: rust
+          rust: stable
