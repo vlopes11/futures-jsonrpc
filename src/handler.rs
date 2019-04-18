@@ -21,6 +21,8 @@ impl<'a> JrpcHandler<'a> {
     ) -> Result<&Self, ErrorVariant> {
         let signature = signature.to_string();
         let jrpc_method = Box::new(jrpc_method);
+        let log_message = format!("Signature {} registered as method", &signature);
+
         {
             self.hm_methods
                 .try_write()
@@ -30,6 +32,8 @@ impl<'a> JrpcHandler<'a> {
                     Ok(())
                 })?;
         }
+
+        trace!("{}", log_message);
         Ok(self)
     }
 
@@ -39,7 +43,9 @@ impl<'a> JrpcHandler<'a> {
     ) -> Result<Box<'m + Future<Item = Option<JrpcResponse>, Error = ErrorVariant>>, ErrorVariant>
     {
         let message = message.to_string();
+        let log_message = format!("Message {}", &message);
         let request = JrpcRequest::parse(message)?;
+        let log_message = format!("{} generated response {:?}", &log_message, &request);
 
         let future = {
             self.hm_methods
@@ -53,6 +59,7 @@ impl<'a> JrpcHandler<'a> {
                 })?
         };
 
+        trace!("{}", log_message);
         Ok(future)
     }
 }
