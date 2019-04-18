@@ -127,6 +127,29 @@ generate_method_with_future!(InitializeRequest, impl Future for InitializeReques
     }
 });
 
+// Also, we can use the `generate_method_with_data_and_future` macro to only implement the
+// `Future`
+generate_method_with_data_and_future!(SomeOtherRequest, (String, i32), impl Future for
+SomeOtherRequest {
+    type Item = Option<JrpcResponse>;
+    type Error = ErrorVariant;
+
+    fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
+        let request = self.get_request()?;
+        let (text, value) = self.get_data();
+
+        let params = json!({
+            "text": text,
+            "value": value,
+        });
+
+        let message = JrpcResponseParam::generate_result(params)
+            .and_then(|result| request.generate_response(result))?;
+
+        Ok(Async::Ready(Some(message)))
+    }
+});
+
 fn main() {
     // `JrpcHanlder` instance is responsible for registering the JSON-RPC methods and receiving the
     // requests.

@@ -26,7 +26,10 @@ impl JrpcRequest {
         jrpc_request.validate()
     }
 
-    pub fn prepare_to_send(method: String, params: Option<JsonValue>) -> Result<JrpcRequest, ErrorVariant> {
+    pub fn prepare_to_send(
+        method: String,
+        params: Option<JsonValue>,
+    ) -> Result<JrpcRequest, ErrorVariant> {
         let id = Some(JsonValue::String(Uuid::new_v4().to_string()));
         let jrpc_request = JrpcRequest {
             jsonrpc: "2.0".to_string(),

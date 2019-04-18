@@ -20,7 +20,7 @@
 //! ```
 //! use futures_jsonrpc::futures::prelude::*;
 //! use futures_jsonrpc::*;
-//! use serde_json::Number;
+//! use serde_json::{json, Number};
 //!
 //! // `JrpcHandler` use foreign structures as controllers
 //! #[derive(Debug, Clone)]
@@ -116,6 +116,29 @@
 //!     }
 //! });
 //!
+//! // Also, we can use the `generate_method_with_data_and_future` macro to only implement the
+//! // `Future`
+//! generate_method_with_data_and_future!(SomeOtherRequest, (String, i32), impl Future for
+//! SomeOtherRequest {
+//!     type Item = Option<JrpcResponse>;
+//!     type Error = ErrorVariant;
+//!
+//!     fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
+//!         let request = self.get_request()?;
+//!         let (text, value) = self.get_data();
+//!
+//!         let params = json!({
+//!             "text": text,
+//!             "value": value,
+//!         });
+//!
+//!         let message = JrpcResponseParam::generate_result(params)
+//!             .and_then(|result| request.generate_response(result))?;
+//!
+//!         Ok(Async::Ready(Some(message)))
+//!     }
+//! });
+//!
 //! fn main() {
 //!     // `JrpcHanlder` instance is responsible for registering the JSON-RPC methods and receiving the
 //!     // requests.
@@ -191,6 +214,7 @@ pub enum ErrorVariant {
     ResponseMustContainResultOrError,
     NoRequestProvided,
     IoError(IoError),
+    InternalError,
 }
 
 impl fmt::Display for ErrorVariant {
@@ -217,6 +241,59 @@ macro_rules! generate_method_with_future {
                 let request = None;
                 let some_notification = $struct_identifier { request };
                 Ok(some_notification)
+            }
+
+            pub fn get_request(&self) -> Result<JrpcRequest, ErrorVariant> {
+                let request = self.request.clone();
+                request
+                    .map(|r| Ok(r.clone()))
+                    .unwrap_or(Err(ErrorVariant::NoRequestProvided))
+            }
+
+            pub fn set_request(mut self, request: JrpcRequest) -> Result<Self, ErrorVariant> {
+                self.request = Some(request);
+                Ok(self)
+            }
+
+            pub fn clone_with_request(&self, request: JrpcRequest) -> Result<Self, ErrorVariant> {
+                self.clone().set_request(request)
+            }
+        }
+
+        $future
+
+        impl JrpcMethodTrait for $struct_identifier {
+            fn generate_future<'a>(
+                &self,
+                request: JrpcRequest,
+            ) -> Result<
+                Box<'a + Future<Item = Option<JrpcResponse>, Error = ErrorVariant>>,
+                ErrorVariant,
+            > {
+                Ok(Box::new(self.clone_with_request(request)?))
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! generate_method_with_data_and_future {
+    ($struct_identifier:ident, $data:ty, $future:item) => {
+        #[derive(Debug, Clone)]
+        pub struct $struct_identifier {
+            request: Option<JrpcRequest>,
+            data: $data,
+        }
+
+        impl $struct_identifier {
+            pub fn new(data: $data) -> Result<Self, ErrorVariant> {
+                let request = None;
+                let some_notification = $struct_identifier { request, data };
+                Ok(some_notification)
+            }
+
+            pub fn get_data(&self) -> &$data {
+                &self.data
             }
 
             pub fn get_request(&self) -> Result<JrpcRequest, ErrorVariant> {
