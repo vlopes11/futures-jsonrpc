@@ -1,5 +1,6 @@
 use crate::{ErrorVariant, JsonValue};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct JrpcRequest {
@@ -15,6 +16,18 @@ impl JrpcRequest {
         params: Option<JsonValue>,
         id: Option<JsonValue>,
     ) -> Result<JrpcRequest, ErrorVariant> {
+        let jrpc_request = JrpcRequest {
+            jsonrpc: "2.0".to_string(),
+            method,
+            params,
+            id,
+        };
+
+        jrpc_request.validate()
+    }
+
+    pub fn prepare_to_send(method: String, params: Option<JsonValue>) -> Result<JrpcRequest, ErrorVariant> {
+        let id = Some(JsonValue::String(Uuid::new_v4().to_string()));
         let jrpc_request = JrpcRequest {
             jsonrpc: "2.0".to_string(),
             method,
