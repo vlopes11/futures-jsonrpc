@@ -109,6 +109,24 @@ impl JrpcMethodTrait for SomeNotification {
     }
 }
 
+// Or, alternitavely, we can use the `generate_method_with_future` macro to only implement the
+// `Future`
+generate_method_with_future!(InitializeRequest, impl Future for InitializeRequest {
+    type Item = Option<JrpcResponse>;
+    type Error = ErrorVariant;
+
+    fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
+        let request = self.get_request()?;
+
+        let params = request.get_params().clone().unwrap_or(JsonValue::Null);
+
+        let message = JrpcResponseParam::generate_result(params)
+            .and_then(|result| request.generate_response(result))?;
+
+        Ok(Async::Ready(Some(message)))
+    }
+});
+
 fn main() {
     // `JrpcHanlder` instance is responsible for registering the JSON-RPC methods and receiving the
     // requests.
@@ -121,10 +139,11 @@ fn main() {
         // `register_method` will tie the method signature to an instance, not a generic. This
         // means we can freely mutate this instance across different signatures.
         .register_method("some/copyParams", SomeNotification::new().unwrap())
+        .and_then(|h| h.register_method("initialize", InitializeRequest::new().unwrap()))
         .and_then(|h| {
             // `handle_message` will receive a raw implementation of `ToString` and return the
             // associated future. If no future is found, an instance of
-            // `Err(ErrorVariant::MethodSignatureNotFound)` is returned
+            // `Err(ErrorVariant::MethodSignatureNotFound(String))` is returned
             h.handle_message(
                 r#"
                 {

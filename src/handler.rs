@@ -54,7 +54,9 @@ impl<'a> JrpcHandler<'a> {
                 .and_then(|hm| {
                     hm.get(request.get_method())
                         .map(|method| Ok(method))
-                        .unwrap_or(Err(ErrorVariant::MethodSignatureNotFound))
+                        .unwrap_or(Err(ErrorVariant::MethodSignatureNotFound(
+                            request.get_method().clone(),
+                        )))
                         .and_then(|method| method.generate_future(request))
                 })?
         };

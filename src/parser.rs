@@ -294,7 +294,7 @@ impl From<i32> for JrpcError {
 impl From<ErrorVariant> for JrpcError {
     fn from(error_variant: ErrorVariant) -> Self {
         match error_variant {
-            ErrorVariant::MethodSignatureNotFound => JrpcError::from(-32601),
+            ErrorVariant::MethodSignatureNotFound(_) => JrpcError::from(-32601),
             ErrorVariant::JsonParseError(_) => JrpcError::from(-32700),
             ErrorVariant::InvalidJsonRpcVersion => JrpcError::from(-32600),
             ErrorVariant::InvalidJsonRpcId => JrpcError::from(-32600),

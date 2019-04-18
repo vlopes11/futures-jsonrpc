@@ -132,7 +132,7 @@
 //!         .and_then(|h| {
 //!             // `handle_message` will receive a raw implementation of `ToString` and return the
 //!             // associated future. If no future is found, an instance of
-//!             // `Err(ErrorVariant::MethodSignatureNotFound)` is returned
+//!             // `Err(ErrorVariant::MethodSignatureNotFound(String))` is returned
 //!             h.handle_message(
 //!                 r#"
 //!                 {
@@ -183,7 +183,7 @@ pub mod parser;
 #[derive(Debug)]
 pub enum ErrorVariant {
     RwLockPoisoned,
-    MethodSignatureNotFound,
+    MethodSignatureNotFound(String),
     JsonParseError(JsonError),
     InvalidJsonRpcVersion,
     InvalidJsonRpcId,
