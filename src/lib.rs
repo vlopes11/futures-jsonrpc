@@ -195,7 +195,12 @@ pub enum ErrorVariant {
 
 impl fmt::Display for ErrorVariant {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            ErrorVariant::MethodSignatureNotFound(s) => {
+                write!(f, "Method signature '{}' not found", s)
+            }
+            _ => write!(f, "{:?}", self),
+        }
     }
 }
 
