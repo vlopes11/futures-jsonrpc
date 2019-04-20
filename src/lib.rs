@@ -215,6 +215,7 @@ pub enum ErrorVariant {
     NoRequestProvided,
     IoError(IoError),
     InternalError,
+    InternalErrorMessage(String),
 }
 
 impl fmt::Display for ErrorVariant {
@@ -222,6 +223,9 @@ impl fmt::Display for ErrorVariant {
         match self {
             ErrorVariant::MethodSignatureNotFound(s) => {
                 write!(f, "Method signature '{}' not found", s)
+            }
+            ErrorVariant::InternalErrorMessage(s) => {
+                write!(f, "An error ocurred: {}", s)
             }
             _ => write!(f, "{:?}", self),
         }
