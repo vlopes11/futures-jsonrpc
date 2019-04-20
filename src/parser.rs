@@ -26,7 +26,22 @@ impl JrpcRequest {
         jrpc_request.validate()
     }
 
-    pub fn prepare_to_send(
+    pub fn prepare_to_send_notification(
+        method: String,
+        params: Option<JsonValue>,
+    ) -> Result<JrpcRequest, ErrorVariant> {
+        let id = None;
+        let jrpc_request = JrpcRequest {
+            jsonrpc: "2.0".to_string(),
+            method,
+            params,
+            id,
+        };
+
+        jrpc_request.validate()
+    }
+
+    pub fn prepare_to_send_request(
         method: String,
         params: Option<JsonValue>,
     ) -> Result<JrpcRequest, ErrorVariant> {
