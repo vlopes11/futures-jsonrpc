@@ -11,11 +11,12 @@ pub struct JrpcRequest {
 }
 
 impl JrpcRequest {
-    pub fn new(
-        method: String,
+    pub fn new<T: ToString>(
+        method: T,
         params: Option<JsonValue>,
         id: Option<JsonValue>,
     ) -> Result<JrpcRequest, ErrorVariant> {
+        let method = method.to_string();
         let jrpc_request = JrpcRequest {
             jsonrpc: "2.0".to_string(),
             method,
@@ -26,10 +27,11 @@ impl JrpcRequest {
         jrpc_request.validate()
     }
 
-    pub fn prepare_to_send_notification(
-        method: String,
+    pub fn prepare_to_send_notification<T: ToString>(
+        method: T,
         params: Option<JsonValue>,
     ) -> Result<JrpcRequest, ErrorVariant> {
+        let method = method.to_string();
         let id = None;
         let jrpc_request = JrpcRequest {
             jsonrpc: "2.0".to_string(),
@@ -41,10 +43,11 @@ impl JrpcRequest {
         jrpc_request.validate()
     }
 
-    pub fn prepare_to_send_request(
-        method: String,
+    pub fn prepare_to_send_request<T: ToString>(
+        method: T,
         params: Option<JsonValue>,
     ) -> Result<JrpcRequest, ErrorVariant> {
+        let method = method.to_string();
         let id = Some(JsonValue::String(Uuid::new_v4().to_string()));
         let jrpc_request = JrpcRequest {
             jsonrpc: "2.0".to_string(),
@@ -268,7 +271,8 @@ pub struct JrpcError {
 }
 
 impl JrpcError {
-    pub fn new(code: i32, message: String, data: Option<JsonValue>) -> Self {
+    pub fn new<T: ToString>(code: i32, message: T, data: Option<JsonValue>) -> Self {
+        let message = message.to_string();
         JrpcError {
             code,
             message,
