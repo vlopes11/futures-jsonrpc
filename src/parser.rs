@@ -6,7 +6,11 @@ use uuid::Uuid;
 pub struct JrpcRequest {
     jsonrpc: String,
     method: String,
+
+    #[serde(skip_serializing_if="Option::is_none")]
     params: Option<JsonValue>,
+
+    #[serde(skip_serializing_if="Option::is_none")]
     id: Option<JsonValue>,
 }
 
@@ -130,8 +134,13 @@ impl JrpcResponseParam {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct JrpcResponse {
     jsonrpc: String,
+
+    #[serde(skip_serializing_if="Option::is_none")]
     result: Option<JsonValue>,
+
+    #[serde(skip_serializing_if="Option::is_none")]
     error: Option<JrpcError>,
+
     id: JsonValue,
 }
 
