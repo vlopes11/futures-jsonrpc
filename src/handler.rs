@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
 pub struct JrpcHandler<'a> {
-    hm_methods: Arc<RwLock<HashMap<String, Box<dyn JrpcMethodTrait + 'a>>>>,
+    hm_methods: Arc<RwLock<HashMap<String, Box<dyn JrpcMethodTrait<'a> + 'a>>>>,
 }
 
 impl<'a> JrpcHandler<'a> {
@@ -14,7 +14,7 @@ impl<'a> JrpcHandler<'a> {
         Ok(handler)
     }
 
-    pub fn register_method<T: ToString, F: JrpcMethodTrait + 'a>(
+    pub fn register_method<T: ToString, F: JrpcMethodTrait<'a> + 'a>(
         &self,
         signature: T,
         jrpc_method: F,
@@ -37,10 +37,10 @@ impl<'a> JrpcHandler<'a> {
         Ok(self)
     }
 
-    pub fn handle_message<'m, T: ToString>(
+    pub fn handle_message<T: ToString>(
         &self,
         message: T,
-    ) -> Result<Box<'m + Future<Item = Option<JrpcResponse>, Error = ErrorVariant>>, ErrorVariant>
+    ) -> Result<Box<'a + Future<Item = Option<JrpcResponse>, Error = ErrorVariant>>, ErrorVariant>
     {
         let message = message.to_string();
         let log_message = format!("Message {}", &message);
