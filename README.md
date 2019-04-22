@@ -32,22 +32,20 @@ futures_jsonrpc = "0.2"
 use futures_jsonrpc::futures::prelude::*;
 use futures_jsonrpc::*;
 use serde_json::Number;
-use std::marker::PhantomData;
 
 // This macro will avoid some boilerplating, leaving only the `Future` implementation to be done
 //
 // Check for additional information in the detailed explanation below
-generate_method_with_data_and_future!(
+//
+// Also, check `generate_method_with_data_and_future` and `generate_method_with_lifetime_data_and_future`
+generate_method!(
     CopyParams,
-    'r,
-    (String, i32, PhantomData<&'r ()>),
-    impl<'r> Future for CopyParams<'r> {
+    impl Future for CopyParams {
         type Item = Option<JrpcResponse>;
         type Error = ErrorVariant;
 
         fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
             let request = self.get_request()?;
-            let (_text, _value, _) = self.get_data();
             let params = request.get_params().clone().unwrap_or(JsonValue::Null);
 
             let message = JrpcResponseParam::generate_result(params)
@@ -69,7 +67,7 @@ fn main() {
     handler
         // `register_method` will tie the method signature to an instance, not a generic. This
         // means we can freely mutate this instance across different signatures.
-        .register_method("some/copyParams", CopyParams::new((String::new(), 15, PhantomData)).unwrap())
+        .register_method("some/copyParams", CopyParams::new().unwrap())
 
         .and_then(|h| {
             // `handle_message` will receive a raw implementation of `ToString` and return the
@@ -116,6 +114,7 @@ use futures_jsonrpc::*;
 use std::marker::PhantomData;
 
 // `JrpcHandler` use foreign structures as controllers
+// This example will reflect `generate_method_with_lifetime_data_and_future` macro
 #[derive(Debug, Clone)]
 pub struct CopyParams<'r> {
     request: Option<JrpcRequest>,
@@ -211,3 +210,4 @@ impl<'r> JrpcMethodTrait<'r> for CopyParams<'r> {
     }
 }
 ```
+
