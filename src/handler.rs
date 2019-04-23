@@ -7,6 +7,13 @@ pub struct JrpcHandler<'a> {
     hm_methods: Arc<RwLock<HashMap<String, Box<dyn JrpcMethodTrait<'a> + 'a>>>>,
 }
 
+impl<'a> Clone for JrpcHandler<'a> {
+    fn clone(&self) -> Self {
+        let hm_methods = self.hm_methods.clone();
+        JrpcHandler { hm_methods }
+    }
+}
+
 impl<'a> JrpcHandler<'a> {
     pub fn new() -> Result<Self, ErrorVariant> {
         let hm_methods = Arc::new(RwLock::new(HashMap::new()));
