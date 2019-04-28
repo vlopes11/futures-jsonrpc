@@ -23,7 +23,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-futures_jsonrpc = "0.2"
+futures-jsonrpc = "0.2"
 ```
 
 ## Minimal example
